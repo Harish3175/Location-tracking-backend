@@ -22,9 +22,9 @@ exports.addBlock = async(req,res) => {
 
     await History.create({
       blockId,
-      productID,
+      productId:productID,
       productName: blockNames[0],
-      registeredEngineer: engineerName,
+      engineerName,
       description,
       registeredDate: new Date(),
       action: "REGISTER"
@@ -54,9 +54,9 @@ exports.updateBlock = async (req,res) => {
 
     await History.create({
       blockId,
-      productID: productId,
+      productId,
       productName,
-      registeredEngineer: engineerName,
+      engineerName,
       description,
       updatedDate: new Date(),
       action: "UPDATE"
