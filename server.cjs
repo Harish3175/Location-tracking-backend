@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+process.env.TZ = "Asia/Kolkata"
 
 const connectDB = require("./config/mongodb.cjs");
 const blockRoutes = require("./routes/blockRoutes.cjs");
