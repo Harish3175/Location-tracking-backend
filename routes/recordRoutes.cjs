@@ -112,4 +112,22 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
+/* ================= BY LINE LOCATION ================= */
+
+router.get("/line/:line", authMiddleware, async (req, res) => {
+  try {
+    const line = req.params.line.toLowerCase();
+
+    const records = await Record.find({
+      status: "RUNNING",
+      lastLocation: { $regex: `^${line}\\b`, $options: "i" }
+    });
+
+    res.json(records);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
+
 module.exports = router;
