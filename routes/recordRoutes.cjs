@@ -116,11 +116,12 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
 
 router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
-    const line = req.params.line.toLowerCase();
+    const line = req.params.line.trim();
+
+    const regex = new RegExp(`line\\s*${line}`, "i");
 
     const records = await Record.find({
-      status: "RUNNING",
-      lastLocation: { $regex: `^${line}\\b`, $options: "i" }
+      lastLocation: regex
     });
 
     res.json(records);
