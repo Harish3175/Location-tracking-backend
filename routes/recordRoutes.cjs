@@ -112,32 +112,29 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// selected line products by last location
+//latest block by line
+
 router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
-    const line = req.params.line.trim();
-    const regex = new RegExp(`line\\s*${line}`, "i");
+    const line = req.params.line.toLowerCase().trim();
 
-    const records = await Record.aggregate([
-      { $sort: { createdAt: -1 } },
+    const records = await Record.find().sort({ createdAt: -1 });
 
-      {
-        $group: {
-          _id: "$blockId",
-          latest: { $first: "$$ROOT" }
-        }
-      },
+    // keep only latest record per block
+    const latest = {};
 
-      { $replaceRoot: { newRoot: "$latest" } },
-
-      {
-        $match: {
-          lastLocation: regex
-        }
+    records.forEach(r => {
+      if (!latest[r.blockId]) {
+        latest[r.blockId] = r;
       }
-    ]);
+    });
 
-    res.json(records);
+    // filter by line OR stencil room
+    const filtered = Object.values(latest).filter(r =>
+      r.lastLocation.toLowerCase().includes(line)
+    );
+
+    res.json(filtered);
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
