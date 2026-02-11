@@ -117,10 +117,22 @@ router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.trim();
 
+    // get all records that match this line
     const records = await Record.find({
       lastLocation: { $regex: line, $options: "i" }
-    }).sort({ updatedAt: -1 });
-    res.json(records);
+    }).sort({ createdAt: -1 });
+
+    // keep ONLY latest record per blockId
+    const latest = {};
+
+    records.forEach(r => {
+      if (!latest[r.blockId]) {
+        latest[r.blockId] = r;
+      }
+    });
+
+    res.json(Object.values(latest));
+
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
