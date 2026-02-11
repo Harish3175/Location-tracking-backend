@@ -112,18 +112,14 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-/* ================= BY LINE LOCATION ================= */
-
+// selected line products by last location
 router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.trim();
 
-    const regex = new RegExp(`line\\s*${line}`, "i");
-
     const records = await Record.find({
-      lastLocation: regex
-    });
-
+      lastLocation: { $regex: line, $options: "i" }
+    }).sort({ updatedAt: -1 });
     res.json(records);
   } catch (err) {
     console.error(err);
