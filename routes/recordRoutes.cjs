@@ -116,23 +116,28 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
 router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.trim();
+    const regex = new RegExp(`line\\s*${line}`, "i");
 
-    // get all records that match this line
-    const records = await Record.find({
-      lastLocation: { $regex: line, $options: "i" }
-    }).sort({ createdAt: -1 });
+    const records = await Record.aggregate([
+      { $sort: { createdAt: -1 } },
 
-    // keep ONLY latest record per blockId
-    const latest = {};
+      {
+        $group: {
+          _id: "$blockId",
+          latest: { $first: "$$ROOT" }
+        }
+      },
 
-    records.forEach(r => {
-      if (!latest[r.blockId]) {
-        latest[r.blockId] = r;
+      { $replaceRoot: { newRoot: "$latest" } },
+
+      {
+        $match: {
+          lastLocation: regex
+        }
       }
-    });
+    ]);
 
-    res.json(Object.values(latest));
-
+    res.json(records);
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
