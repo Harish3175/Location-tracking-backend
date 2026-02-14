@@ -7,6 +7,7 @@ const Record = require("../models/Record.cjs");
 const { authMiddleware, adminOnly } = require("../middleware/authMiddleware.cjs");
 const forcePasswordMiddleware = require("../middleware/forcePasswordMiddleware.cjs");
 
+
 /* ================= SCAN ================= */
 
 router.post("/scan", authMiddleware, async (req, res) => {
@@ -58,7 +59,8 @@ router.post("/scan", authMiddleware, async (req, res) => {
 
     /* ===== AUTO DELETE: KEEP LAST 5 ===== */
 
-    const allRecords = await Record.find({ blockId }).sort({ createdAt: -1 });
+    const allRecords = await Record.find({ blockId })
+      .sort({ createdAt: -1 });
 
     if (allRecords.length > 5) {
       const deleteIds = allRecords.slice(5).map(r => r._id);
@@ -73,16 +75,25 @@ router.post("/scan", authMiddleware, async (req, res) => {
   }
 });
 
+
 /* ================= ALL RECORDS ================= */
 
 router.get("/", authMiddleware, forcePasswordMiddleware, async (req, res) => {
   try {
+
+    // Operator → only latest record
     if (req.user.role === "operator") {
-      const last = await Record.findOne().sort({ createdAt: -1 });
+      const last = await Record.findOne()
+        .sort({ createdAt: -1 });
+
       return res.json(last ? [last] : []);
     }
 
-    const records = await Record.find().sort({ createdAt: -1 });
+    // Admin → latest 200 only (FAST)
+    const records = await Record.find()
+      .sort({ createdAt: -1 })
+      .limit(200);
+
     res.json(records);
 
   } catch (err) {
@@ -90,16 +101,20 @@ router.get("/", authMiddleware, forcePasswordMiddleware, async (req, res) => {
   }
 });
 
+
 /* ================= RUNNING ================= */
 
 router.get("/running", authMiddleware, async (req, res) => {
   try {
-    const running = await Record.find({ status: "RUNNING" });
+    const running = await Record.find({ status: "RUNNING" })
+      .sort({ createdAt: -1 });
+
     res.json(running);
   } catch (err) {
     res.status(500).json([]);
   }
 });
+
 
 /* ================= DELETE (ADMIN) ================= */
 
@@ -112,33 +127,27 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-//latest block by line
+
+/* ================= LATEST BY LINE ================= */
 
 router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.toLowerCase().trim();
 
-    const records = await Record.find().sort({ createdAt: -1 });
+    // MongoDB handles filtering (FAST)
+    const records = await Record.find({
+      lastLocation: { $regex: line, $options: "i" }
+    })
+      .sort({ createdAt: -1 })
+      .limit(200);
 
-    // keep only latest record per block
-    const latest = {};
+    res.json(records);
 
-    records.forEach(r => {
-      if (!latest[r.blockId]) {
-        latest[r.blockId] = r;
-      }
-    });
-
-    // filter by line OR stencil room
-    const filtered = Object.values(latest).filter(r =>
-      r.lastLocation.toLowerCase().includes(line)
-    );
-
-    res.json(filtered);
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
   }
 });
+
 
 module.exports = router;
