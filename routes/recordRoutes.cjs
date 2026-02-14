@@ -135,7 +135,7 @@ router.get("/line/:line", authMiddleware, async (req, res) => {
     const line = req.params.line.toLowerCase().trim();
 
     // 1️⃣ get ALL records (latest first)
-    const records = await Record.find().sort({ createdAt: -1 });
+    const records = await Record.find().sort({ createdAt: -1 }).limit(200);
 
     // 2️⃣ keep ONLY latest record per blockId
     const latest = {};

@@ -22,4 +22,8 @@ const recordSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+recordSchema.index({bloackId:1});
+recordSchema.index({lastLocation:1});
+recordSchema.index({createAt: -1});
+
 module.exports = mongoose.model("Record", recordSchema);
