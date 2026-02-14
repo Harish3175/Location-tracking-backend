@@ -134,14 +134,38 @@ router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.toLowerCase().trim();
 
-    // MongoDB handles filtering (FAST)
-    const records = await Record.find({
-      lastLocation: { $regex: line, $options: "i" }
-    })
-      .sort({ createdAt: -1 })
-      .limit(200);
+    // 1️⃣ get ALL records (latest first)
+    const records = await Record.find().sort({ createdAt: -1 });
 
-    res.json(records);
+    // 2️⃣ keep ONLY latest record per blockId
+    const latest = {};
+    records.forEach(r => {
+      if (!latest[r.blockId]) {
+        latest[r.blockId] = r;
+      }
+    });
+
+    // 3️⃣ get ALL blocks (master data)
+    const blocks = await Block.find();
+
+    // 4️⃣ merge block + record
+    const merged = blocks.map(b => {
+      const rec = latest[b.blockId];
+
+      return {
+        blockId: b.blockId,
+        productName: rec?.productName || b.blockNames?.[0] || "",
+        lastLocation: rec?.lastLocation || b.defaultLocation,
+        status: rec?.status || "IDLE"
+      };
+    });
+
+    // 5️⃣ filter by selected line
+    const result = merged.filter(b =>
+      b.lastLocation?.toLowerCase().includes(line)
+    );
+
+    res.json(result);
 
   } catch (err) {
     console.error(err);
