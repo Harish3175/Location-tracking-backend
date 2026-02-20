@@ -78,7 +78,7 @@ router.post("/scan", authMiddleware, async (req, res) => {
 
 /* ================= ALL RECORDS ================= */
 
-router.get("/", async (req, res) => {
+router.get("/",authMiddleware, async (req, res) => {
   try {
 
     // Operator → only latest record
