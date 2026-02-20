@@ -7,7 +7,6 @@ const Record = require("../models/Record.cjs");
 const { authMiddleware, adminOnly } = require("../middleware/authMiddleware.cjs");
 const forcePasswordMiddleware = require("../middleware/forcePasswordMiddleware.cjs");
 
-
 /* ================= SCAN ================= */
 
 router.post("/scan", authMiddleware, async (req, res) => {
@@ -29,8 +28,7 @@ router.post("/scan", authMiddleware, async (req, res) => {
       status: "RUNNING",
     });
 
-    /* ================= START ================= */
-
+    // ===== START PROCESS =====
     if (!running) {
       const record = await Record.create({
         blockId,
@@ -46,8 +44,7 @@ router.post("/scan", authMiddleware, async (req, res) => {
       return res.json({ message: "Process started", record });
     }
 
-    /* ================= END ================= */
-
+    // ===== END PROCESS =====
     running.operatorOut = operatorId;
     running.endTime = new Date();
     running.lastLocation = location || lineId;
@@ -57,8 +54,7 @@ router.post("/scan", authMiddleware, async (req, res) => {
 
     await running.save();
 
-    /* ===== AUTO DELETE: KEEP LAST 5 ===== */
-
+    // Keep last 5 records only
     const allRecords = await Record.find({ blockId })
       .sort({ createdAt: -1 });
 
@@ -75,12 +71,10 @@ router.post("/scan", authMiddleware, async (req, res) => {
   }
 });
 
-
 /* ================= ALL RECORDS ================= */
 
-router.get("/",authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, forcePasswordMiddleware, async (req, res) => {
   try {
-
     // Operator → only latest record
     if (req.user.role === "operator") {
       const last = await Record.findOne()
@@ -89,7 +83,7 @@ router.get("/",authMiddleware, async (req, res) => {
       return res.json(last ? [last] : []);
     }
 
-    // Admin → latest 200 only (FAST)
+    // Admin → latest 200 only
     const records = await Record.find()
       .sort({ createdAt: -1 })
       .limit(200);
@@ -97,24 +91,24 @@ router.get("/",authMiddleware, async (req, res) => {
     res.json(records);
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json([]);
   }
 });
 
-
 /* ================= RUNNING ================= */
 
-router.get("/running", async (req, res) => {
+router.get("/running", authMiddleware, async (req, res) => {
   try {
     const running = await Record.find({ status: "RUNNING" })
       .sort({ createdAt: -1 });
 
     res.json(running);
   } catch (err) {
+    console.error(err);
     res.status(500).json([]);
   }
 });
-
 
 /* ================= DELETE (ADMIN) ================= */
 
@@ -123,21 +117,23 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
     await Record.findByIdAndDelete(req.params.id);
     res.json({ message: "Record deleted" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
 
-
 /* ================= LATEST BY LINE ================= */
 
-router.get("/line/:line", async (req, res) => {
+router.get("/line/:line", authMiddleware, async (req, res) => {
   try {
     const line = req.params.line.toLowerCase().trim();
 
-    // 1️⃣ get ALL records (latest first)
-    const records = await Record.find().sort({ createdAt: -1 }).limit(200);
+    // Get latest 200 records
+    const records = await Record.find()
+      .sort({ createdAt: -1 })
+      .limit(200);
 
-    // 2️⃣ keep ONLY latest record per blockId
+    // Keep latest per blockId
     const latest = {};
     records.forEach(r => {
       if (!latest[r.blockId]) {
@@ -145,10 +141,8 @@ router.get("/line/:line", async (req, res) => {
       }
     });
 
-    // 3️⃣ get ALL blocks (master data)
     const blocks = await Block.find();
 
-    // 4️⃣ merge block + record
     const merged = blocks.map(b => {
       const rec = latest[b.blockId];
 
@@ -160,7 +154,6 @@ router.get("/line/:line", async (req, res) => {
       };
     });
 
-    // 5️⃣ filter by selected line
     const result = merged.filter(b =>
       b.lastLocation?.toLowerCase().includes(line)
     );
@@ -172,6 +165,5 @@ router.get("/line/:line", async (req, res) => {
     res.status(500).json([]);
   }
 });
-
 
 module.exports = router;
