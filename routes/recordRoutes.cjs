@@ -78,7 +78,7 @@ router.post("/scan", authMiddleware, async (req, res) => {
 
 /* ================= ALL RECORDS ================= */
 
-router.get("/", authMiddleware, forcePasswordMiddleware, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
 
     // Operator → only latest record
@@ -104,7 +104,7 @@ router.get("/", authMiddleware, forcePasswordMiddleware, async (req, res) => {
 
 /* ================= RUNNING ================= */
 
-router.get("/running", authMiddleware, async (req, res) => {
+router.get("/running", async (req, res) => {
   try {
     const running = await Record.find({ status: "RUNNING" })
       .sort({ createdAt: -1 });
@@ -130,7 +130,7 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
 
 /* ================= LATEST BY LINE ================= */
 
-router.get("/line/:line", authMiddleware, async (req, res) => {
+router.get("/line/:line", async (req, res) => {
   try {
     const line = req.params.line.toLowerCase().trim();
 
