@@ -46,7 +46,7 @@ exports.signup = async (req, res) => {
 };
 
 
-// ===================== LOGIN =====================
+// ===================== LOGIN 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "30d" }
     );
 
     // Success response

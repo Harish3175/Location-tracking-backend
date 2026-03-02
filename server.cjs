@@ -30,7 +30,7 @@ app.use("/api/admin",adminRoutes)
 
 //test route
 app.get("/",(req,res) => {
-    res.send("Blockend is running");
+    res.send("Backend is running");
 });
  
 // start server
