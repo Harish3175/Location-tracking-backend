@@ -51,7 +51,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    //DEBUG LOGS (REMOVE LATER)
    // console.log("LOGIN ATTEMPT");
     //console.log("Email:", email);
     //console.log("Password:", password);
