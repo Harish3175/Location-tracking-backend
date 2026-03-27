@@ -1,30 +1,77 @@
-📍 Location Tracking - Backend
+# 📍 Location Tracking Backend (MERN)
 
-This is the backend service for the Location Tracking system. It manages location data, handles API requests, and connects with the frontend application.
+## 🚀 Description
+This is the backend for a role-based Location Tracking System. It provides secure APIs for authentication, location (block) management, history tracking, and user/admin control using JWT and middleware.
 
-🚀 Features
+---
 
-- 📡 API for sending and receiving location data
-- 🔏 JWT Authentication for secure login
--  Role-Based Access Control (RBAC)
--  Middleware to verify token
--  Protected API routes
-
-🛠️ Technologies Used
-
+## 🛠️ Tech Stack
 - Node.js
 - Express.js
-- MongoDB
+- MongoDB (Mongoose)
+- JWT Authentication
+- Middleware (Authorization)
 
-🔗 Live API
+---
 
-(Add your Render backend link here)
+## 🔐 Core Features
+- JWT Authentication (Login / Register)
+- Role-Based Access Control (Admin / User)
+- Protected API routes using middleware
+- Location management (Blocks)
+- History tracking of activities
+- Record management system
+- Admin-controlled user access
 
-📌 Future Improvements
+---
 
-- Improve data validation
-- Add real-time tracking using WebSockets
+---
 
-🙌 Author
+## 🔄 Data Flow
 
-- Harish (MERN Stack Developer)
+Client → Server → Routes → Middleware → Controller → Model → Database
+
+---
+
+## 📡 API Modules
+
+### 🔑 Auth
+- `POST /api/auth/register` → Register user  
+- `POST /api/auth/login` → Login & get token  
+
+---
+
+### 📍 Blocks (Location)
+- `GET /api/blocks` → Get locations  
+- `POST /api/blocks` → Add new location  
+
+---
+
+### 📜 History
+- `GET /api/history` → Get activity history  
+
+---
+
+### 📦 Records
+- `GET /api/records` → Get tracking records  
+
+---
+
+### 👤 Users
+- `GET /api/users` → Get users  
+
+---
+
+### 🛠️ Admin
+- Admin-only operations using role-based access  
+
+---
+
+## 🔑 Authentication & Authorization
+
+- JWT token generated during login  
+- Token verified using middleware  
+- Role-based access (Admin/User)  
+- Protected routes for sensitive APIs  
+
+---
